@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>LOVE // PARTICLE STORM</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#05040b;color:#fff;font-family:Arial,sans-serif}canvas{display:block;width:100vw;height:100vh}#hud{position:fixed;inset:18px 18px auto;display:flex;justify-content:space-between;gap:10px;pointer-events:none;font:11px monospace;letter-spacing:2px;color:#ff4c91;text-shadow:0 0 12px #ff1744}#bottom{position:fixed;bottom:18px;left:18px;right:18px;display:flex;justify-content:space-between;font:10px monospace;letter-spacing:1px;color:#b98aff;pointer-events:none}#hint{position:fixed;left:50%;bottom:42px;transform:translateX(-50%);font:10px monospace;letter-spacing:2px;color:#fff8;white-space:nowrap}
+</style></head><body>
+<canvas id="c"></canvas><div id="hud"><span>LOVE.exe</span><span>PARTICLE STORM // 001</span></div><div id="bottom"><span>HEART SYNC: ACTIVE</span><span>ESCAPE THE ORDINARY</span></div><div id="hint">TOUCH / CLICK TO DISTURB THE FIELD</div>
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');let w,h,dpr,frame=0,particles=[],stars=[],trails=[];
+function resize(){dpr=Math.min(devicePixelRatio||1,2);w=innerWidth;h=innerHeight;canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);init()}addEventListener('resize',resize);
+function heart(t,s){return [Math.sin(t)**3*16*s, -(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))*s]}
+function init(){particles=[];stars=[];trails=[];let scale=Math.min(w/43,h/43),cx=w/2,cy=h*.48;for(let i=0;i<1800;i++){let t=Math.random()*Math.PI*2,r=Math.sqrt(Math.random());let [x,y]=heart(t,scale);let tx=cx+x*r,ty=cy+y*r;particles.push({x:Math.random()*w,y:Math.random()*h,tx,ty,vx:0,vy:0,phase:Math.random()*6.28,word:Math.random()<.76?'I LOVE YOU':Math.random()<.5?'LOVE':'ILY',size:Math.random()<.12?10:7,hue:Math.random()})}for(let i=0;i<260;i++)stars.push({x:Math.random()*w,y:Math.random()*h,spd:.3+Math.random()*2.8,r:.4+Math.random()*1.5,a:Math.random()*6.28});}
+resize();
+function disturb(x,y){for(let p of particles){let dx=p.x-x,dy=p.y-y,dist=Math.hypot(dx,dy);if(dist<180){let f=(180-dist)/180*12;p.vx+=dx/(dist||1)*f;p.vy+=dy/(dist||1)*f}}}
+canvas.addEventListener('pointerdown',e=>disturb(e.clientX,e.clientY));
+function draw(){frame++;ctx.fillStyle='rgba(5,4,11,.25)';ctx.fillRect(0,0,w,h);let cx=w/2,cy=h*.48;
+// storm stars and orbital streaks
+for(let s of stars){let dx=s.x-cx,dy=s.y-cy,ang=Math.atan2(dy,dx)+.003*s.spd;let rad=Math.hypot(dx,dy)+s.spd*1.2;if(rad>Math.max(w,h)*.8){rad=Math.random()*60;ang=Math.random()*6.28}s.x=cx+Math.cos(ang)*rad;s.y=cy+Math.sin(ang)*rad;ctx.fillStyle=Math.random()>.45?'rgba(255,40,105,.8)':'rgba(177,90,255,.8)';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,6.28);ctx.fill()}
+ctx.save();ctx.globalAlpha=.24;for(let k=0;k<15;k++){ctx.beginPath();for(let j=0;j<100;j++){let t=j/99,ang=frame*.008+k*.45+t*5,rad=60+t*Math.min(w,h)*.45;let x=cx+Math.cos(ang)*rad,y=cy+Math.sin(ang)*rad*.72;if(j===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}ctx.strokeStyle=k%3===0?'#b44cff':'#ff1744';ctx.lineWidth=.6;ctx.stroke()}ctx.restore();
+// faint outline
+ctx.beginPath();for(let i=0;i<=360;i++){let [x,y]=heart(i*Math.PI/180,Math.min(w/43,h/43)*1.02);if(i===0)ctx.moveTo(cx+x,cy+y);else ctx.lineTo(cx+x,cy+y)}ctx.strokeStyle='rgba(255,40,100,.15)';ctx.lineWidth=1;ctx.stroke();
+// text particles assemble, swirl, pulse
+let pulse=1+.018*Math.sin(frame*.06);for(let p of particles){let tx=cx+(p.tx-cx)*pulse,ty=cy+(p.ty-cy)*pulse;let dx=tx-p.x,dy=ty-p.y;let swirl=.035; p.vx+=dx*.009-dy*swirl+Math.sin(frame*.025+p.phase)*.045;p.vy+=dy*.009+dx*swirl+Math.cos(frame*.027+p.phase)*.045;p.vx*=.91;p.vy*=.91;p.x+=p.vx;p.y+=p.vy;let hue=p.hue;ctx.font=`${p.size}px Arial`;ctx.textAlign='center';ctx.fillStyle=hue<.15?'rgba(255,235,247,.9)':hue<.65?'rgba(255,45,110,.86)':'rgba(190,100,255,.85)';ctx.shadowColor=hue<.65?'#ff1744':'#a855f7';ctx.shadowBlur=5;ctx.fillText(p.word,p.x,p.y)}ctx.shadowBlur=0;
+// center label
+ctx.textAlign='center';ctx.font=`700 ${Math.min(44,w*.085)}px Arial`;ctx.fillStyle='rgba(255,255,255,.92)';ctx.shadowColor='#ff1744';ctx.shadowBlur=22;ctx.fillText('I LOVE YOU',cx,h*.13);ctx.shadowBlur=0;
+requestAnimationFrame(draw)}draw();
+</script></body></html>
